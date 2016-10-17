@@ -4,131 +4,163 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/sha1"
-	"errors"
 	"fmt"
 	"io"
-	"math"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
-	"sync"
+	"strings"
+	"time"
 )
 
-const filechunk = 8192 // 8KB
+//文件块拆分
+const fileChunk = 512 * 1024 * 1024 // 512M
+//统计需要遍历的文件夹下面的数量
+var fileCount = 0
+var rootPath string
+var resultPath string
+
+//默认匹配所有文件
+var regStr = "(.*)"
 
 //返回结果
 type result struct {
-	path string
-	sum  []byte
-	size int64
-	err  error
+	filePath  string
+	sha1Value []byte
+	fileSize  int64
 }
 
-func sumFiles(done <-chan struct{}, root string) (<-chan result, <-chan error) {
-	c := make(chan result)
-	errc := make(chan error, 1)
-	go func() {
-		var wg sync.WaitGroup
-		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !info.Mode().IsRegular() {
-				return nil
-			}
-			wg.Add(1)
-			go func() {
-				file, err := os.Open(path)
-
-				if err != nil {
-					panic(err.Error())
-				}
-
-				defer file.Close()
-
-				info, _ := file.Stat()
-				filesize := info.Size()
-
-				blocks := uint64(math.Ceil(float64(filesize) / float64(filechunk)))
-				hash := sha1.New()
-
-				for i := uint64(0); i < blocks; i++ {
-					blocksize := int(math.Min(filechunk, float64(filesize-int64(i*filechunk))))
-					buf := make([]byte, blocksize)
-					file.Read(buf)
-					io.WriteString(hash, string(buf))
-				}
-
-				select {
-				case c <- result{path, hash.Sum(nil), filesize, err}:
-				case <-done:
-				}
-				wg.Done()
-			}()
-			select {
-			case <-done:
-				return errors.New("walk canceled")
-			default:
-				return nil
-			}
-		})
-
-		go func() {
-			wg.Wait()
-			close(c)
-		}()
-		errc <- err
-	}()
-	return c, errc
+//byte数组转16进制字符串
+func byteToHex(data []byte) string {
+	buf := new(bytes.Buffer)
+	for _, b := range data {
+		s := strconv.FormatInt(int64(b&0xff), 16)
+		if len(s) == 1 {
+			buf.WriteString("0")
+		}
+		buf.WriteString(s)
+	}
+	return buf.String()
 }
 
-func SHA1All(root string, result string) error {
-	done := make(chan struct{})
-	defer close(done)
-	c, errc := sumFiles(done, root)
-	if err := <-errc; err != nil {
-		return err
+func main() {
+
+	argNum := len(os.Args)
+	rootPath, _ = filepath.Abs(filepath.Dir(os.Args[0]))
+	rootPath = strings.Replace(rootPath, "\\", "/", -1)
+	resultPath = rootPath + "result.txt"
+
+	if argNum >= 4 {
+		rootPath = os.Args[1]
+		resultPath = os.Args[2]
+		regStr = os.Args[3]
+	} else if argNum == 3 {
+		rootPath = os.Args[1]
+		resultPath = os.Args[2]
+	} else if argNum == 2 {
+		rootPath = os.Args[1]
 	}
 
-	f, err := os.Create(result)
+	CountFile(rootPath)
+	fmt.Println("文件数量：", fileCount)
+
+	f, err := os.Create(resultPath)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
 
-	for r := range c {
-		if r.err != nil {
-			return r.err
+	c := make(chan string, 20)
+	go GetFilePath(rootPath, c)
+
+	tick := time.Tick(1e8)
+	readCount := 0
+	for {
+		select {
+		case <-tick:
+			w.Flush()
+			if readCount >= fileCount {
+				fmt.Println("文件统计结束")
+				return
+			}
+		case filePath := <-c:
+			res := AnalyseFile(filePath)
+			context := strings.Join([]string{res.filePath, byteToHex(res.sha1Value), strconv.FormatInt(res.fileSize, 10)}, ", ")
+			fmt.Println(context)
+			if _, err := w.WriteString(context + "\r\n"); err != nil {
+				return
+			}
+			readCount += 1
 		}
-		context := r.path + "," + ByteToHex(r.sum) + "," + strconv.FormatInt(r.size, 10) + "byte"
-		if _, err := w.WriteString(context + "\r\n"); err != nil {
+	}
+}
+
+//统计文件夹下文件数量
+func CountFile(root string) {
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
 			return err
 		}
-	}
-	w.Flush()
-
-	return nil
-}
-
-func ByteToHex(data []byte) string {
-	buffer := new(bytes.Buffer)
-	for _, b := range data {
-
-		s := strconv.FormatInt(int64(b&0xff), 16)
-		if len(s) == 1 {
-			buffer.WriteString("0")
+		if !info.Mode().IsRegular() {
+			return nil
 		}
-		buffer.WriteString(s)
-	}
-
-	return buffer.String()
+		if strings.EqualFold(path, resultPath) {
+			return nil
+		}
+		match, _ := regexp.MatchString(regStr, info.Name())
+		if match {
+			fileCount++
+		}
+		return nil
+	})
 }
 
-func main() {
-	err := SHA1All("E:/File/图书/golang/", "E:/File/图书/golang/result.txt")
+func GetFilePath(root string, c chan string) {
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+		if strings.EqualFold(path, resultPath) {
+			return nil
+		}
+		match, _ := regexp.MatchString(regStr, info.Name())
+		if match {
+			c <- path
+		}
+		return nil
+	})
+}
+
+func AnalyseFile(path string) *result {
+	f, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
-		return
+		panic(err.Error())
 	}
+	defer f.Close()
+
+	info, err := f.Stat()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	fileSize := info.Size()
+	blocks := fileSize / fileChunk
+	hash := sha1.New()
+
+	for i := int64(0); i <= blocks; i++ {
+		blockSize := fileSize - i*fileChunk
+		if fileChunk < blockSize {
+			blockSize = blockSize
+		}
+		buf := make([]byte, blockSize)
+		f.Read(buf)
+		io.WriteString(hash, string(buf))
+	}
+
+	return &result{path, hash.Sum(nil), fileSize}
 }
