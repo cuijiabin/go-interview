@@ -7,11 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
 )
+
+const filechunk = 8192 // 8KB
 
 //返回结果
 type result struct {
@@ -36,12 +39,28 @@ func sumFiles(done <-chan struct{}, root string) (<-chan result, <-chan error) {
 			wg.Add(1)
 			go func() {
 				file, err := os.Open(path)
-				fileInfo, _ := os.Stat(path)
-				h := sha1.New()
-				io.Copy(h, file)
+
+				if err != nil {
+					panic(err.Error())
+				}
+
+				defer file.Close()
+
+				info, _ := file.Stat()
+				filesize := info.Size()
+
+				blocks := uint64(math.Ceil(float64(filesize) / float64(filechunk)))
+				hash := sha1.New()
+
+				for i := uint64(0); i < blocks; i++ {
+					blocksize := int(math.Min(filechunk, float64(filesize-int64(i*filechunk))))
+					buf := make([]byte, blocksize)
+					file.Read(buf)
+					io.WriteString(hash, string(buf))
+				}
 
 				select {
-				case c <- result{path, h.Sum(nil), fileInfo.Size(), err}:
+				case c <- result{path, hash.Sum(nil), filesize, err}:
 				case <-done:
 				}
 				wg.Done()
@@ -113,5 +132,3 @@ func main() {
 		return
 	}
 }
-
-
