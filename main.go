@@ -15,7 +15,7 @@ import (
 )
 
 //文件块拆分
-const fileChunk = 200 * 1024 * 1024 // 512M
+const fileChunk = 512 * 1024 * 1024 // 512M
 //统计需要遍历的文件夹下面的数量
 var fileCount = 0
 var rootPath string
