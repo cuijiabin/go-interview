@@ -155,7 +155,7 @@ func AnalyseFile(path string) *result {
 	for i := int64(0); i <= blocks; i++ {
 		blockSize := fileSize - i*fileChunk
 		if fileChunk < blockSize {
-			blockSize = blockSize
+			blockSize = fileChunk
 		}
 		buf := make([]byte, blockSize)
 		f.Read(buf)
