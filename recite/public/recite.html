@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>默写文章内容</title>
+    <link rel="stylesheet" href="/vue/iview.css">
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="vue_body_id">
+    <Affix v-cloak>
+        <Row type="flex" justify="center" align="middle" style="background: #39f;">
+            <i-col span="2">
+                <span style="font-size: 30px;color:white;margin-right: 10px;float: right;">写乎</span>
+            </i-col>
+            <i-col span="6">
+                <i-input style="width:96%;" placeholder="请输入要默写的内容">
+                    <i-button slot="append" icon="ios-search"></i-button>
+                </i-input>
+            </i-col>
+            <i-col span="10">
+                <Menu mode="horizontal" theme="primary" active-key="1" @on-select="change_address">
+                    <Menu-item key="1">
+                        <Icon type="ios-paper"></Icon>
+                        标签管理
+                    </Menu-item>
+                    <Menu-item key="2">
+                        <Icon type="ios-people"></Icon>
+                        用户管理
+                    </Menu-item>
+                    <Menu-item key="4">
+                        <Icon type="stats-bars"></Icon>
+                        统计分析
+                    </Menu-item>
+                    <Menu-item key="4">
+                        <Icon type="settings"></Icon>
+                        默写设置
+                    </Menu-item>
+                </Menu>
+            </i-col>
+        </Row>
+    </Affix>
+    <Row type="flex" justify="center" align="middle" style="margin-top: 20px;" v-cloak>
+        <i-col span="5">
+            <Circle :percent="percent" :stroke-color="color()">
+                <Icon v-if="percent == 100" type="ios-checkmark-empty" size="60" style="color:#5cb85c"></Icon>
+                <span v-else style="font-size:24px">{{ percent }}%</span>
+            </Circle>
+        </i-col>
+        <i-col span="5">
+            设定时间：3分钟
+            <Button-group>
+                <i-button icon="ios-plus-empty" @click="add()"></i-button>
+                <i-button icon="ios-minus-empty" @click="minus()"></i-button>
+            </Button-group>
+        </i-col>
+    </Row>
+    <Row type="flex" justify="center" style="margin-top: 20px;" v-cloak>
+        <i-col span="10">
+            <Collapse accordion>
+                    <Panel>
+                        {{recite.title}}
+                        <p slot="content">{{recite.tip}}</p>
+                    </Panel>
+            </Collapse>
+        </i-col>
+    </Row>
+    <Row type="flex" justify="center" style="margin-top: 20px;" v-cloak>
+        <i-col span="10">
+            <i-form label-position="top">
+                <Form-item label="默写内容">
+                    <i-input :value.sync="repeat.rpContent" type="textarea" :autosize="{minRows: 5,maxRows: 10}"
+                             placeholder="请输入..."></i-input>
+                </Form-item>
+                <Form-item label="原内容" v-if="showRecite" v-cloak>
+                    <i-input :value.sync="recite.content" type="textarea" :autosize="{minRows: 5,maxRows: 10}"></i-input>
+                </Form-item>
+                <Form-item label="备注">
+                    <i-input :value.sync="repeat.remark" type="textarea" :autosize="{minRows: 5,maxRows: 10}"
+                             placeholder="请输入..."></i-input>
+                </Form-item>
+                <Form-item>
+                    <i-button type="primary" @click="submit_service()">提交</i-button>
+                    <i-button type="ghost" style="margin-left: 8px">取消默写</i-button>
+                    <i-button type="ghost" @click="showRecite = !showRecite" style="margin-left: 8px">
+                        <template v-if="!showRecite">显示原内容</template>
+                        <template v-if="showRecite">关闭原内容</template>
+                    </i-button>
+                </Form-item>
+            </i-form>
+        </i-col>
+    </Row>
+</div>
+</body>
+<script src="/jquery/jquery-1.9.1.min.js"></script>
+<script src="/vue/vue.js"></script>
+<script src="/vue/vue-router.min.js"></script>
+<script src="/vue/iview.min.js"></script>
+<script type="text/javascript">
+
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        var context = "";
+        if (r != null)
+            context = r[2];
+        reg = null;
+        r = null;
+        return context == null || context == "" || context == "undefined" ? "" : context;
+    }
+
+    var bodyData = {
+        showRecite:false,
+        recite: {
+            title:"",
+            tip:"",
+            content:""
+        },
+        repeat: {
+            rpContent:"",
+            remark:""
+        },
+        percent: 0
+    }
+    var bodyVM = new Vue({
+        el: "#vue_body_id",
+        data: bodyData,
+        computed: {
+            color: function () {
+                var color = '#2db7f5';
+                if (bodyData.percent == 100) {
+                    color = '#5cb85c';
+                }
+                return color;
+            }
+        },
+        methods: {
+            change_address:function (key) {
+                if(key==1){
+                    window.location.href = "/";
+                }
+            },
+            submit_service: function () {
+                submitRepeat()
+            },
+            add: function () {
+                if (bodyData.percent >= 100) {
+                    return false;
+                }
+                bodyData.percent += 10;
+            },
+            minus: function () {
+                if (bodyData.percent <= 0) {
+                    return false;
+                }
+                bodyData.percent -= 10;
+            }
+        }
+    });
+    function reciteDetail() {
+        var id = GetQueryString("id");
+        $.ajax({
+            url: "/detailRecite",
+            data: {"id":id},
+            type: "POST",
+            dataType: "JSON",
+            success: function (data) {
+                if (data.recite) {
+                    bodyData.recite.title = data.recite.Title;
+                    bodyData.recite.tip = data.recite.Tip;
+                    bodyData.recite.content = data.recite.Content;
+                } else {
+                    bodyVM.$Message.error("无法加载默写文件类");
+                }
+            },
+            error: function () {
+                bodyVM.$Message.error("无法加载默写文件类");
+            }
+        });
+    }
+
+    function submitRepeat() {
+        var id = GetQueryString("id");
+        $.ajax({
+            url: "/addRepeat",
+            data: {
+                "rId":id,
+                "rpContent":bodyData.repeat.rpContent,
+                "remark":bodyData.repeat.remark
+            },
+            type: "POST",
+            dataType: "JSON",
+            success: function (data) {
+                if (data.id) {
+                   window.location.href="/repeatList.html?id="+id;
+                } else {
+                    bodyVM.$Message.error("提交失败");
+                }
+            },
+            error: function () {
+                bodyVM.$Message.error("提交失败");
+            }
+        });
+    }
+    reciteDetail()
+
+</script>
+</html>

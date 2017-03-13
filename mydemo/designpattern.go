@@ -107,18 +107,17 @@ func SelectDemo() {
 }
 
 //菊花链生成素数
-func xrange2() chan int{ // 从2开始自增的整数生成器
+func xrange2() chan int { // 从2开始自增的整数生成器
 	var ch chan int = make(chan int)
 
 	go func() { // 开出一个goroutine
 		for i := 2; ; i++ {
-			ch <- i  // 直到信道索要数据，才把i添加进信道
+			ch <- i // 直到信道索要数据，才把i添加进信道
 		}
 	}()
 
 	return ch
 }
-
 
 func filter(in chan int, number int) chan int {
 	// 输入一个整数队列，筛出是number倍数的, 不是number的倍数的放入输出队列
@@ -127,9 +126,9 @@ func filter(in chan int, number int) chan int {
 
 	go func() {
 		for {
-			i := <- in // 从输入中取一个
+			i := <-in // 从输入中取一个
 
-			if i % number != 0 {
+			if i%number != 0 {
 				out <- i // 放入输出信道
 			}
 		}
@@ -138,23 +137,22 @@ func filter(in chan int, number int) chan int {
 	return out
 }
 
-
 func PrimeNumber() {
-	const max = 100 // 找出100以内的所有素数
+	const max = 100   // 找出100以内的所有素数
 	nums := xrange2() // 初始化一个整数生成器
 	number := <-nums  // 从生成器中抓一个整数(2), 作为初始化整数
 
 	for number <= max { // number作为筛子，当筛子超过max的时候结束筛选
-		fmt.Println(number) // 打印素数, 筛子即一个素数
+		fmt.Println(number)         // 打印素数, 筛子即一个素数
 		nums = filter(nums, number) //筛掉number的倍数
-		number = <- nums  // 更新筛子
+		number = <-nums             // 更新筛子
 	}
 }
 
 func rand01() chan int {
 	ch := make(chan int)
 
-	go func () {
+	go func() {
 		for {
 			select { //select会尝试执行各个case, 如果都可以执行，那么随机选一个执行
 			case ch <- 0:
@@ -165,7 +163,6 @@ func rand01() chan int {
 
 	return ch
 }
-
 
 func GenRand() {
 	generator := rand01() //初始化一个01随机生成器

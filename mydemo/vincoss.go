@@ -21,7 +21,7 @@ func GenIp(ip string) []string {
 					genIp += v[i] + "."
 				}
 			}
-			resultSlice = append(resultSlice,genIp)
+			resultSlice = append(resultSlice, genIp)
 		}
 	}
 	return resultSlice

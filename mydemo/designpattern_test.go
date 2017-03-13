@@ -1,9 +1,9 @@
 package mydemo
 
 import (
-	"testing"
-	"fmt"
 	"bytes"
+	"fmt"
+	"testing"
 	//"strings"
 )
 
@@ -13,7 +13,7 @@ func TestPxgen(t *testing.T) {
 
 func TestGetNotice(t *testing.T) {
 	jack := GetNotice("jack") //  获取jack的消息
-	joe := GetNotice("joe") // 获取joe的消息
+	joe := GetNotice("joe")   // 获取joe的消息
 
 	// 获取消息的返回
 	fmt.Println(<-jack)
@@ -36,13 +36,13 @@ func TestGenRand(t *testing.T) {
 	GenRand()
 }
 
-func TestConvert(t *testing.T)  {
+func TestConvert(t *testing.T) {
 	var m int = 1
 	var k int32 = 95
 	var n int64 = 89
-	fmt.Println(int64(m)*n)
-	fmt.Println(m*int(n))
-	fmt.Println(int32(m)*k)
+	fmt.Println(int64(m) * n)
+	fmt.Println(m * int(n))
+	fmt.Println(int32(m) * k)
 
 	//高效字符串拼接
 	var buffer bytes.Buffer //Buffer是一个实现了读写方法的可变大小的字节缓冲

@@ -1,8 +1,0 @@
-{
-	"baseName": "angular-go",
-	"goBin": "D:\\Go\\/bin",
-	"baseDir": "./",
-	"entities": [],
-	"resources": [],
-	"appPort": 8080
-}

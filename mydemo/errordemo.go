@@ -22,14 +22,12 @@ func Myerror() {
 	fmt.Println("Returned normally from f.")
 }
 
-func MyPanic()  {
+func MyPanic() {
 	panic("不好了")
 }
 
-func MySelect()  {
-	select {
-
-	}
+func MySelect() {
+	select {}
 }
 
 func f() {

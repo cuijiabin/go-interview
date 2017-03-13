@@ -1,10 +1,10 @@
 package mydemo
 
 import (
-	"testing"
+	"container/list"
 	"fmt"
 	"math"
-	"container/list"
+	"testing"
 )
 
 func TestInsertionSort(t *testing.T) {
@@ -22,7 +22,7 @@ func TestBubbleSort(t *testing.T) {
 
 func TestQuickSort(t *testing.T) {
 	test := []int{49, 38, 65, 97, 76, 13, 27, 49}
-	QuickSort(test,0,len(test)-1)
+	QuickSort(test, 0, len(test)-1)
 	fmt.Println(test)
 }
 
@@ -32,14 +32,13 @@ func TestHeapSort(t *testing.T) {
 	fmt.Println(test)
 }
 
-func TestConvert2(t *testing.T){
-		/**
+func TestConvert2(t *testing.T) {
+	/**
 	  二进制转换成十进制
 	  核心:
 	  入栈、出栈、类型转换
 	  //sum += int(v-48) * int(math.Pow(2, N))
 	**/
-
 
 	stack := list.New()
 

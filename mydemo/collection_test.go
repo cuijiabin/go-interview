@@ -42,6 +42,3 @@ func Test_RemoveSlice(t *testing.T) {
 func Test_StateMap(t *testing.T) {
 	StateMap()
 }
-
-
-

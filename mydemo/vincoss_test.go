@@ -1,6 +1,5 @@
 package mydemo
 
-
 import "testing"
 
 func Test_GuIp(t *testing.T) {

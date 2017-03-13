@@ -16,7 +16,7 @@ func TestBcount(t *testing.T) {
 	Bcount()
 }
 
-func TestMyGo(t *testing.T)  {
+func TestMyGo(t *testing.T) {
 	MyGo()
 }
 

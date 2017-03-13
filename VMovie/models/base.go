@@ -3,18 +3,19 @@ package models
 import (
 	"crypto/md5"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
-	"io"
-	"strings"
 )
 
 func init() {
-	mysqluser := beego.AppConfig.String("mysqluser")
-	mysqlpass := beego.AppConfig.String("mysqlpass")
-	mysqlurls := beego.AppConfig.String("mysqlurls")
-	mysqldb := beego.AppConfig.String("mysqldb")
+	mysqluser := "root"           //beego.AppConfig.String("mysqluser")
+	mysqlpass := "123456"         //beego.AppConfig.String("mysqlpass")
+	mysqlurls := "127.0.0.1:3306" //beego.AppConfig.String("mysqlurls")
+	mysqldb := "beego"            //beego.AppConfig.String("mysqldb")
 	orm.RegisterModel(new(RelationInfo), new(PageInfo), new(MovieInfo), new(MovieClassInfo), new(TvStationInfo), new(DownAddrClassInfo), new(DownAddrInfo), new(TagInfo), new(UserInfo), new(RecommendInfo))
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")

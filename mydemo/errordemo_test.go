@@ -2,7 +2,7 @@ package mydemo
 
 import "testing"
 
-func TestMyerror(t *testing.T){
+func TestMyerror(t *testing.T) {
 	Myerror()
 }
 

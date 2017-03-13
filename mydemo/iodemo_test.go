@@ -26,5 +26,5 @@ func TestCheckExist(t *testing.T) {
 }
 
 func TestIoWrite(t *testing.T) {
-	IoWrite("E:/File/图书/golang/go语言面试题2.txt","崔佳彬",4)
+	IoWrite("E:/File/图书/golang/go语言面试题2.txt", "崔佳彬", 4)
 }

@@ -1,0 +1,9 @@
+用途：方便默写文件
+###数据结构设计
+recite
+>{_id:"
+>",title:"",content:"",
+history_record:[{content:"",create_at:""}],
+recite_num:20,weight:"权重",label_list:[1,2,4]}
+>
+>
