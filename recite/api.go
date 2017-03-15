@@ -55,6 +55,25 @@ func EditRecite(w http.ResponseWriter, req *http.Request) {
 		"code": 0,
 	}
 	json.NewEncoder(w).Encode(f)
+}
+
+func DelRecite(w http.ResponseWriter, req *http.Request) {
+	id := req.PostFormValue("id")
+	list := ListMgoRepeat(id)
+	if len(list) == 0 {
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"msg":  "还有背诵没有删除",
+			"code": -1,
+		})
+		return
+	}
+
+	result := DelMgoRecite(id)
+	f := map[string]interface{}{
+		"msg":  result,
+		"code": 0,
+	}
+	json.NewEncoder(w).Encode(f)
 
 }
 
@@ -79,6 +98,43 @@ func AddRepeat(w http.ResponseWriter, req *http.Request) {
 		"code": 0,
 	}
 	json.NewEncoder(w).Encode(resultMap)
+
+}
+
+func DetailRepeat(w http.ResponseWriter, req *http.Request) {
+
+	id := req.PostFormValue("id")
+	repeat := GetRepeatById(id)
+	f := map[string]interface{}{
+		"code":   0,
+		"repeat": repeat,
+	}
+	json.NewEncoder(w).Encode(f)
+
+}
+
+func DelRepeat(w http.ResponseWriter, req *http.Request) {
+
+	id := req.PostFormValue("id")
+	result := DelRepeatById(id)
+	f := map[string]interface{}{
+		"msg":  result,
+		"code": 0,
+	}
+	json.NewEncoder(w).Encode(f)
+
+}
+
+func EditRepeat(w http.ResponseWriter, req *http.Request) {
+
+	id := req.PostFormValue("id")
+	remark := req.PostFormValue("remark")
+	result := EditMgoRepeat(id, remark)
+	f := map[string]interface{}{
+		"id":   result,
+		"code": 0,
+	}
+	json.NewEncoder(w).Encode(f)
 
 }
 

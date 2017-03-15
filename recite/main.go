@@ -18,15 +18,19 @@ func main() {
 	http.HandleFunc("/detailRecite", DetailRecite)
 	// 添加
 	http.HandleFunc("/addRecite", AddRecite)
+	//编辑
 	http.HandleFunc("/editRecite", EditRecite)
+	//删除
+	http.HandleFunc("/delRecite", DelRecite)
 
-	//添加背诵记录
-	http.HandleFunc("/addRepeat", AddRepeat)
+	//记录列表
 	http.HandleFunc("/rpList", RepeatList)
+	//添加记录
+	http.HandleFunc("/addRepeat", AddRepeat)
+	http.HandleFunc("/detailRepeat", DetailRepeat)
+	http.HandleFunc("/editRepeat", EditRepeat)
+	http.HandleFunc("/delRepeat", DelRepeat)
 
-	//TODO 修改
-	//TODO 删除
-	//TODO 重复
 
 	err := http.ListenAndServe(":3000", nil)
 	if err != nil {

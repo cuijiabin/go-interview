@@ -10,41 +10,12 @@ import (
 
 const MGO_URL = "127.0.0.1:27017"
 
-type Recite struct {
-	Id         bson.ObjectId `bson:"_id"`
-	Title      string        `bson:"title"`
-	Content    string        `bson:"content"`
-	Tip        string        `bson:"tip"`
-	RCondition RepeatCondition `bson:"r_condition"`
-	CreateAt   time.Time        `bson:"create_at"`
-}
-
-type RepeatCondition struct {
-	TCount int `bson:"t_count"`
-	RCount int `bson:"r_count"`
-	WCount int `bson:"w_count"`
-}
-
-type Repeat struct {
-	Id        bson.ObjectId `bson:"_id"`
-	RId       bson.ObjectId `bson:"r_id"`
-	RpContent string        `bson:"rp_content"`
-	Remark    string        `bson:"remark"`
-	IsCorrect bool        `bson:"is_correct"`
-	CreateAt  time.Time        `bson:"create_at"`
-}
-
-type PageRecite struct {
-	Cp   int `json:"Cp"` //当前页
-	Ps   int `json:"Ps"` //每页大小
-	tP   int `json:"tP"` //总页数
-	tC   int `json:"tC"` //总条数
-	list *[]Recite `json:"list"`
-}
-
 var (
 	mgoSession *mgo.Session
 	dataBase   = "myrecite"
+	tblRecite  = "recite"
+	tblRepeat  = "repeat"
+	tblLabel   = "label"
 )
 
 func getSession() *mgo.Session {
@@ -73,11 +44,21 @@ func AddMgoRecite(r Recite) string {
 	query := func(c *mgo.Collection) error {
 		return c.Insert(r)
 	}
-	err := witchCollection("recite", query)
+	err := witchCollection(tblRecite, query)
 	if err != nil {
 		return "false"
 	}
 	return r.Id.Hex()
+}
+
+func GetReciteById(id string) *Recite {
+	objId := bson.ObjectIdHex(id)
+	recite := new(Recite)
+	query := func(c *mgo.Collection) error {
+		return c.FindId(objId).One(&recite)
+	}
+	witchCollection(tblRecite, query)
+	return recite
 }
 
 func EditMgoRecite(id string, r Recite) bool {
@@ -85,21 +66,32 @@ func EditMgoRecite(id string, r Recite) bool {
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": bson.ObjectIdHex(id)}, data)
 	}
-	err := witchCollection("recite", query)
+	err := witchCollection(tblRecite, query)
 	if err != nil {
 		return false
 	}
 	return true
 }
+func DelMgoRecite(id string) bool {
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
+	}
+	err := witchCollection(tblRecite, query)
+	if err != nil {
+		fmt.Println("删除失败" + err.Error())
+		return false
+	}
+	return true
+}
 
-//TODO 更新
+//更新回答情况
 func StatMgoRecite(id string) bool {
 	rc := StatConditon(id)
 	data := bson.M{"$set": bson.M{"r_condition": &rc}}
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": bson.ObjectIdHex(id)}, data)
 	}
-	err := witchCollection("recite", query)
+	err := witchCollection(tblRecite, query)
 	if err != nil {
 		fmt.Println("更新统计失败" + err.Error())
 		return false
@@ -112,7 +104,7 @@ func StatConditon(id string) *RepeatCondition {
 	rc := &RepeatCondition{0, 0, 0}
 	session := getSession()
 	defer session.Close()
-	c := session.DB(dataBase).C("repeat")
+	c := session.DB(dataBase).C(tblRepeat)
 	rc.TCount, _ = c.Find(bson.M{"r_id": bson.ObjectIdHex(id)}).Count()
 	rc.RCount, _ = c.Find(bson.M{"r_id": bson.ObjectIdHex(id), "is_correct": true}).Count()
 	rc.WCount, _ = c.Find(bson.M{"r_id": bson.ObjectIdHex(id), "is_correct": false}).Count()
@@ -126,7 +118,7 @@ func PageMgoRecite(page PageRecite) PageRecite {
 	//TODO 可以优化处理
 	session := getSession()
 	defer session.Close()
-	c := session.DB(dataBase).C("recite")
+	c := session.DB(dataBase).C(tblRecite)
 	page.tC, err = c.Find(nil).Count()
 	if err != nil {
 		return page
@@ -135,7 +127,7 @@ func PageMgoRecite(page PageRecite) PageRecite {
 	query := func(c *mgo.Collection) error {
 		return c.Find(nil).Sort("-create_at").Skip((page.Cp - 1) * page.Ps).Limit(page.Ps).All(&recites)
 	}
-	err = witchCollection("recite", query)
+	err = witchCollection(tblRecite, query)
 	if err != nil {
 		return page
 	}
@@ -143,14 +135,17 @@ func PageMgoRecite(page PageRecite) PageRecite {
 	return page
 }
 
-func GetReciteById(id string) *Recite {
-	objId := bson.ObjectIdHex(id)
-	recite := new(Recite)
+//查看背诵列表
+func ListMgoRepeat(rId string) []Repeat {
+	var repeats []Repeat
 	query := func(c *mgo.Collection) error {
-		return c.FindId(objId).One(&recite)
+		return c.Find(bson.M{"r_id": bson.ObjectIdHex(rId)}).All(&repeats)
 	}
-	witchCollection("recite", query)
-	return recite
+	err := witchCollection(tblRepeat, query)
+	if err != nil {
+		return repeats
+	}
+	return repeats
 }
 
 //添加背诵选项
@@ -161,24 +156,11 @@ func AddMgoRepeat(r Repeat, rId string) string {
 	query := func(c *mgo.Collection) error {
 		return c.Insert(r)
 	}
-	err := witchCollection("repeat", query)
+	err := witchCollection(tblRepeat, query)
 	if err != nil {
 		return "false"
 	}
 	return r.Id.Hex()
-}
-
-//查看背诵列表
-func ListMgoRepeat(rId string) []Repeat {
-	var repeats []Repeat
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"r_id": bson.ObjectIdHex(rId)}).All(&repeats)
-	}
-	err := witchCollection("repeat", query)
-	if err != nil {
-		return repeats
-	}
-	return repeats
 }
 
 //查看背诵详情
@@ -188,18 +170,18 @@ func GetRepeatById(id string) *Repeat {
 	query := func(c *mgo.Collection) error {
 		return c.FindId(objId).One(&repeat)
 	}
-	witchCollection("repeat", query)
+	witchCollection(tblRepeat, query)
 	return repeat
 }
 
 //修改背诵备注
-func UpdateRepeatById(id string, remark string) bool {
+func EditMgoRepeat(id string, remark string) bool {
 	//data := bson.M{"remark": remark}
 	data := bson.M{"$set": bson.M{"remark": remark}}
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": bson.ObjectIdHex(id)}, data)
 	}
-	err := witchCollection("repeat", query)
+	err := witchCollection(tblRepeat, query)
 	if err != nil {
 		fmt.Println("删除失败" + err.Error())
 		return false
@@ -212,7 +194,53 @@ func DelRepeatById(id string) bool {
 	query := func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
 	}
-	err := witchCollection("repeat", query)
+	err := witchCollection(tblRepeat, query)
+	if err != nil {
+		fmt.Println("删除失败" + err.Error())
+		return false
+	}
+	return true
+}
+
+func AddMgoLabel(r Label) string {
+	r.Id = bson.NewObjectId()
+	r.CreateAt = time.Now()
+	query := func(c *mgo.Collection) error {
+		return c.Insert(r)
+	}
+	err := witchCollection(tblLabel, query)
+	if err != nil {
+		return "false"
+	}
+	return r.Id.Hex()
+}
+
+func DetailMgoLabel(id string) *Label {
+	objId := bson.ObjectIdHex(id)
+	label := new(Label)
+	query := func(c *mgo.Collection) error {
+		return c.FindId(objId).One(&label)
+	}
+	witchCollection(tblLabel, query)
+	return label
+}
+
+func EditMgoLabel(id string, name string) bool {
+	data := bson.M{"$set": bson.M{"name": name}}
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": bson.ObjectIdHex(id)}, data)
+	}
+	err := witchCollection(tblLabel, query)
+	if err != nil {
+		return false
+	}
+	return true
+}
+func DelMgoLabel(id string) bool {
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
+	}
+	err := witchCollection(tblLabel, query)
 	if err != nil {
 		fmt.Println("删除失败" + err.Error())
 		return false

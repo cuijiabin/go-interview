@@ -16,7 +16,7 @@ func TestGetRepeatById(t *testing.T) {
 	fmt.Println(repeat)
 }
 func  TestUpdateRepeatById(t *testing.T) {
-	result := UpdateRepeatById("58c5268e3ec97411c08e26a5","添加备注呵呵")
+	result := EditMgoRepeat("58c5268e3ec97411c08e26a5","添加备注呵呵")
 	fmt.Println(result)
 }
 
