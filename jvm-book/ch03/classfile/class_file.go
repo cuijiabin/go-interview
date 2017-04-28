@@ -61,8 +61,8 @@ func (self *ClassFile) read(reader *ClassReader) {
 	self.thisClass = reader.readUint16()
 	self.superClass = reader.readUint16()
 	self.interfaces = reader.readUint16s()
-	self.fields = readMembers(reader, self.constantPool)//是否是一个bug？
-	self.methods = readMembers(reader, self.constantPool)//是否是一个bug？
+	self.fields = readMembers(reader, self.constantPool)  //是否是一个bug？
+	self.methods = readMembers(reader, self.constantPool) //是否是一个bug？
 	self.attributes = readAttributes(reader, self.constantPool)
 }
 
@@ -73,6 +73,7 @@ func (self *ClassFile) readAndCheckMagic(reader *ClassReader) {
 		panic("java.lang.ClassFormatError: magic!")
 	}
 }
+
 //读取与检查版本
 func (self *ClassFile) readAndCheckVersion(reader *ClassReader) {
 	self.minorVersion = reader.readUint16()

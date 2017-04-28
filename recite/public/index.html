@@ -47,6 +47,9 @@
     </Affix>
     <Row type="flex" justify="center" style="margin-top: 20px;">
         <i-col span="18">
+            <a href="/add.html">添加</a>
+        </i-col>
+        <i-col span="18">
             <Collapse accordion>
                 <template v-for="recite in reciteList">
                     <Panel>
@@ -91,7 +94,7 @@
         methods: {
             change_address:function (key) {
                 if(key==1){
-                    window.location.href = "/";
+                    window.location.href = "/labelList.html";
                 }
             },
             page_service: function () {

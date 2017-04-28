@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>默写首页</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="/vue/iview.css">
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="vue_body_id">
+    <Affix v-cloak>
+        <Row type="flex" justify="center" align="middle" style="background: #39f;">
+            <i-col span="2">
+                <span style="font-size: 30px;color:white;margin-right: 10px;float: right;">写乎</span>
+            </i-col>
+            <i-col span="6">
+                <i-input style="width:96%;" placeholder="请输入要默写的内容">
+                    <i-button slot="append" icon="ios-search"></i-button>
+                </i-input>
+            </i-col>
+            <i-col span="10">
+                <Menu mode="horizontal" theme="primary" active-key="1" @on-select="change_address">
+                    <Menu-item key="1">
+                        <Icon type="ios-paper"></Icon>
+                        标签管理
+                    </Menu-item>
+                    <Menu-item key="2">
+                        <Icon type="ios-people"></Icon>
+                        用户管理
+                    </Menu-item>
+                    <Menu-item key="4">
+                        <Icon type="stats-bars"></Icon>
+                        统计分析
+                    </Menu-item>
+                    <Menu-item key="4">
+                        <Icon type="settings"></Icon>
+                        默写设置
+                    </Menu-item>
+                </Menu>
+            </i-col>
+        </Row>
+    </Affix>
+    <Row type="flex" justify="center" style="margin-top: 20px;" v-cloak>
+        <i-col span="16">
+            <i-button  @click="addLabelModal = !addLabelModal" type="success" size="small">添加标签</i-button>
+        </i-col>
+        <i-col span="16">
+            <template>
+                <i-table border :columns="columns" :data="tableData"></i-table>
+            </template>
+        </i-col>
+    </Row>
+
+    <router-view></router-view>
+    <Back-top></Back-top>
+    <Modal :visible.sync="addLabelModal" title="添加标签" @on-ok="add_label" @on-cancel="addLabelModal = false">
+        <p>
+            标签名称：<Input v-model="addLabelName" placeholder="请输入..." style="width: 300px;line-height: 30px;">
+        </p>
+
+    </Modal>
+</div>
+</body>
+<script src="/jquery/jquery-1.9.1.min.js"></script>
+<script src="/vue/vue.js"></script>
+<script src="/vue/vue-router.min.js"></script>
+<script src="/vue/iview.min.js"></script>
+<script type="text/javascript">
+
+    Date.prototype.Format = function (fmt) {
+        var o = {
+            "y+": this.getFullYear(),
+            "M+": this.getMonth() + 1,                 //月份
+            "d+": this.getDate(),                    //日
+            "h+": this.getHours(),                   //小时
+            "m+": this.getMinutes(),                 //分
+            "s+": this.getSeconds(),                 //秒
+            "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+            "S+": this.getMilliseconds()             //毫秒
+        };
+        for (var k in o) {
+            if (new RegExp("(" + k + ")").test(fmt)){
+                if(k == "y+"){
+                    fmt = fmt.replace(RegExp.$1, ("" + o[k]).substr(4 - RegExp.$1.length));
+                }
+                else if(k=="S+"){
+                    var lens = RegExp.$1.length;
+                    lens = lens==1?3:lens;
+                    fmt = fmt.replace(RegExp.$1, ("00" + o[k]).substr(("" + o[k]).length - 1,lens));
+                }
+                else{
+                    fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+                }
+            }
+        }
+        return fmt;
+    }
+
+    var bodyData = {
+        pageNo: 1,
+        addLabelModal: false,
+        addLabelName: "",
+        columns: [
+            {
+                title: "id",
+                key: "Id"
+            },
+            {
+                title: "名称",
+                key: "Name"
+            },
+            {
+                title: "时间",
+                key: "CreateAt",
+                render (row, column, index) {
+                    date = new Date(row.CreateAt);
+                    return date.Format("yyyy-MM-dd hh:mm:ss");
+                }
+            },
+            {
+                title: '操作',
+                key: 'action',
+                width: 150,
+                align: 'center',
+                render (row, column, index) {
+                    return "<i-button type='primary' size='small' @click='contentDetail(${index})'>查看</i-button> <i-button type='error' size='small' @click='remove(${index})'>删除</i-button>";
+                }
+            }
+        ],
+        tableData: []
+    }
+
+    var bodyVM = new Vue({
+        el: "#vue_body_id",
+        data: bodyData,
+        methods: {
+            change_address: function (key) {
+                if (key == 1) {
+                    window.location.href = "/";
+                }
+            },
+            recite_service: function (objectId) {
+                window.location.href = "/recite.html?id=" + objectId;
+            },
+            list_service: function (objectId) {
+                window.location.href = "/repeatList.html?id=" + objectId;
+            },
+            modify_service: function (objectId) {
+                window.location.href = "/edit.html?id=" + objectId;
+            },
+            add_label:function () {
+                addLabel();
+            }
+        }
+    });
+
+    function initData() {
+        $.ajax({
+            url: "/lbList",
+            data: {},
+            type: "POST",
+            dataType: "JSON",
+            success: function (data) {
+                bodyData.tableData = data;
+            },
+            error: function () {
+                bodyVM.$Message.error("数据加载失败");
+            }
+        });
+    }
+    //添加标签
+    function addLabel() {
+        bodyData.addLabelModal = false;
+        $.ajax({
+            url: "/addLabel",
+            data: {
+                "content":bodyData.addLabelName
+            },
+            type: "POST",
+            dataType: "JSON",
+            success: function (data) {
+                initData();
+            },
+            error: function () {
+                bodyVM.$Message.error("数据加载失败");
+            }
+        });
+
+    }
+
+    initData();
+</script>
+</html>

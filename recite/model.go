@@ -7,12 +7,12 @@ import (
 )
 
 type Recite struct {
-	Id         bson.ObjectId `bson:"_id"`
-	Title      string        `bson:"title"`
-	Content    string        `bson:"content"`
-	Tip        string        `bson:"tip"`
+	Id         bson.ObjectId   `bson:"_id"`
+	Title      string          `bson:"title"`
+	Content    string          `bson:"content"`
+	Tip        string          `bson:"tip"`
 	RCondition RepeatCondition `bson:"r_condition"`
-	CreateAt   time.Time        `bson:"create_at"`
+	CreateAt   time.Time       `bson:"create_at"`
 }
 
 type RepeatCondition struct {
@@ -26,20 +26,20 @@ type Repeat struct {
 	RId       bson.ObjectId `bson:"r_id"`
 	RpContent string        `bson:"rp_content"`
 	Remark    string        `bson:"remark"`
-	IsCorrect bool        `bson:"is_correct"`
-	CreateAt  time.Time        `bson:"create_at"`
+	IsCorrect bool          `bson:"is_correct"`
+	CreateAt  time.Time     `bson:"create_at"`
 }
 
 type PageRecite struct {
-	Cp   int `json:"Cp"` //当前页
-	Ps   int `json:"Ps"` //每页大小
-	tP   int `json:"tP"` //总页数
-	tC   int `json:"tC"` //总条数
+	Cp   int       `json:"Cp"` //当前页
+	Ps   int       `json:"Ps"` //每页大小
+	tP   int       `json:"tP"` //总页数
+	tC   int       `json:"tC"` //总条数
 	list *[]Recite `json:"list"`
 }
 
-type Label struct{
-	Id        bson.ObjectId `bson:"_id"`
-	Name string        `bson:"name"`
-	CreateAt  time.Time        `bson:"create_at"`
+type Label struct {
+	Id       bson.ObjectId `bson:"_id"`
+	Name     string        `bson:"name"`
+	CreateAt time.Time     `bson:"create_at"`
 }

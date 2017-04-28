@@ -63,7 +63,6 @@ func getMainMethod(cf *classfile.ClassFile) *classfile.MemberInfo {
 	return nil
 }
 
-
 func interpret(methodInfo *classfile.MemberInfo) {
 	codeAttr := methodInfo.CodeAttribute()
 	maxLocals := codeAttr.MaxLocals()

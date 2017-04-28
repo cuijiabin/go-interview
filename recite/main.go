@@ -31,6 +31,9 @@ func main() {
 	http.HandleFunc("/editRepeat", EditRepeat)
 	http.HandleFunc("/delRepeat", DelRepeat)
 
+	//TODO 标签列表 暂时先不分页来显示
+	http.HandleFunc("/lbList", LabelList)
+	http.HandleFunc("/addLabel", AddLabel)
 
 	err := http.ListenAndServe(":3000", nil)
 	if err != nil {

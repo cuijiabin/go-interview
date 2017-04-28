@@ -19,6 +19,7 @@ var (
 	mgoSession *mgo.Session
 	dataBase   = "myrecite"
 )
+
 /**
  * 公共方法，获取session，如果存在则拷贝一份
  */

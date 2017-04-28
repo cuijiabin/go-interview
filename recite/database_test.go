@@ -15,8 +15,8 @@ func TestGetRepeatById(t *testing.T) {
 	repeat := GetRepeatById("58c5268e3ec97411c08e26a5")
 	fmt.Println(repeat)
 }
-func  TestUpdateRepeatById(t *testing.T) {
-	result := EditMgoRepeat("58c5268e3ec97411c08e26a5","添加备注呵呵")
+func TestUpdateRepeatById(t *testing.T) {
+	result := EditMgoRepeat("58c5268e3ec97411c08e26a5", "添加备注呵呵")
 	fmt.Println(result)
 }
 
@@ -31,7 +31,7 @@ func TestListMgoRepeat(t *testing.T) {
 
 func TestStatConditon(t *testing.T) {
 	r := StatConditon("58c424463ec97445f492888c")
-	fmt.Println(r.TCount,r.RCount,r.WCount)
+	fmt.Println(r.TCount, r.RCount, r.WCount)
 }
 
 func TestStatMgoRecite(t *testing.T) {

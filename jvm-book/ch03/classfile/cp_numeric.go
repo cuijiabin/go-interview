@@ -1,8 +1,8 @@
 package classfile
 
 import (
-	"math"
 	"fmt"
+	"math"
 )
 
 /*

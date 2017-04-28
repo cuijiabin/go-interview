@@ -1,4 +1,5 @@
 package main
+
 import "testing"
 
 func TestGetUrl(t *testing.T) {

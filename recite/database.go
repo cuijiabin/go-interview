@@ -202,6 +202,20 @@ func DelRepeatById(id string) bool {
 	return true
 }
 
+//标签的处理选择方式
+//所有标签列表
+func ListMgoLabel() []Label {
+	var labels []Label
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{}).All(&labels)
+	}
+	err := witchCollection(tblLabel, query)
+	if err != nil {
+		return labels
+	}
+	return labels
+}
+
 func AddMgoLabel(r Label) string {
 	r.Id = bson.NewObjectId()
 	r.CreateAt = time.Now()

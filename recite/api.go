@@ -143,3 +143,23 @@ func RepeatList(w http.ResponseWriter, req *http.Request) {
 	list := ListMgoRepeat(rId)
 	json.NewEncoder(w).Encode(list)
 }
+
+//TODO 标签列表
+func LabelList(w http.ResponseWriter, req *http.Request) {
+	list := ListMgoLabel()
+	json.NewEncoder(w).Encode(list)
+}
+//TODO 添加标签
+func AddLabel(w http.ResponseWriter, req *http.Request) {
+	content := req.PostFormValue("content")
+	l := Label{Name: content}
+	result := AddMgoLabel(l)
+	f := map[string]interface{}{
+		"id":   result,
+		"code": 0,
+	}
+	json.NewEncoder(w).Encode(f)
+}
+//TODO 删除标签
+//TODO 修改标签
+//TODO 标签详情

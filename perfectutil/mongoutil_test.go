@@ -7,7 +7,7 @@ import (
 
 //测试添加用户
 func TestAddPerson(t *testing.T) {
-	p := Person{Name:"cuijiabin",Phone:"18910358924"}
+	p := Person{Name: "cuijiabin", Phone: "18910358924"}
 	id := AddPerson(p)
 	fmt.Println(id)
 }
